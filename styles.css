@@ -1,6 +1,7 @@
 /* AllTimer — tokens from design.md (Claude editorial system) */
 
 :root {
+  color-scheme: light;
   --canvas: #faf9f5;
   --surface-soft: #f5f0e8;
   --surface-card: #efe9de;
@@ -22,6 +23,7 @@
 }
 
 [data-theme="dark"] {
+  color-scheme: dark;
   --canvas: #181715;
   --surface-soft: #1f1e1b;
   --surface-card: #252320;
@@ -203,7 +205,9 @@ main {
   margin-bottom: 8px;
 }
 
-#titleInput {
+#titleInput,
+#startDate,
+#endDate {
   width: 100%;
   height: 40px;
   padding: 0 14px;
@@ -213,7 +217,9 @@ main {
   border-radius: var(--radius-md);
   font: 400 16px/1.4 var(--font-body);
 }
-#titleInput:focus {
+#titleInput:focus,
+#startDate:focus,
+#endDate:focus {
   outline: none;
   border-color: var(--primary);
   box-shadow: 0 0 0 3px rgba(204, 120, 92, 0.15);
@@ -221,6 +227,13 @@ main {
 #titleInput::placeholder { color: var(--muted-soft); }
 
 .pills { display: flex; flex-wrap: wrap; gap: 12px; }
+
+.custom-range {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.custom-range[hidden] { display: none; }
 
 .pill {
   padding: 8px 18px;
@@ -247,6 +260,7 @@ html.is-fullscreen main { gap: clamp(28px, 6vh, 56px); }
 
 /* Responsive */
 @media (max-width: 640px) {
+  .custom-range { grid-template-columns: 1fr; }
   .countdown { display: grid; grid-template-columns: repeat(2, auto); justify-content: center; }
   .colon { display: none; }
   .digit { font-size: clamp(44px, 14vw, 72px); }
