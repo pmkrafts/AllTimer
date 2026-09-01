@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#faf9f5">
+  <title>AllTimer — Year Countdown</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <svg class="mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true">
+        <path d="M18.2 5.8 5.8 18.2M18.2 18.2 5.8 5.8"/>
+      </svg>
+      <span class="wordmark">AllTimer</span>
+    </div>
+    <div class="controls">
+      <button id="themeToggle" class="icon-btn" aria-label="Toggle dark mode" type="button">
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="5"/>
+          <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+        </svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+      </button>
+      <button id="fullscreenToggle" class="icon-btn" aria-label="Toggle fullscreen" type="button">
+        <svg class="icon-expand" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M8 3H5a2 2 0 0 0-2 2v3M21 8V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3M16 21h3a2 2 0 0 0 2-2v-3"/>
+        </svg>
+        <svg class="icon-compress" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M8 3v3a2 2 0 0 1-2 2H3M21 8h-3a2 2 0 0 1-2-2V3M3 16h3a2 2 0 0 1 2 2v3M16 21v-3a2 2 0 0 1 2-2h3"/>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <h1 id="title" class="display-title">Make this year count</h1>
+
+    <div class="countdown" role="timer" aria-live="off">
+      <div class="unit">
+        <span id="days" class="digit">00</span>
+        <span class="unit-label">days</span>
+      </div>
+      <span class="colon" aria-hidden="true">:</span>
+      <div class="unit">
+        <span id="hours" class="digit">00</span>
+        <span class="unit-label">hours</span>
+      </div>
+      <span class="colon" aria-hidden="true">:</span>
+      <div class="unit">
+        <span id="minutes" class="digit">00</span>
+        <span class="unit-label">minutes</span>
+      </div>
+      <span class="colon" aria-hidden="true">:</span>
+      <div class="unit">
+        <span id="seconds" class="digit">00</span>
+        <span class="unit-label">seconds</span>
+      </div>
+    </div>
+
+    <div class="meta">
+      <div class="progress" aria-hidden="true"><span id="progressFill"></span></div>
+      <p id="caption" class="caption"></p>
+    </div>
+
+    <section class="settings">
+      <div class="field">
+        <label class="label" for="titleInput">Motivation title</label>
+        <input id="titleInput" type="text" maxlength="60" placeholder="e.g. Make this year count">
+      </div>
+      <fieldset class="field">
+        <legend class="label">Countdown length</legend>
+        <div class="pills" id="durationPills">
+          <button class="pill" data-months="1" type="button">1 month</button>
+          <button class="pill" data-months="2" type="button">2 months</button>
+          <button class="pill" data-months="3" type="button">3 months</button>
+          <button class="pill" data-months="4" type="button">4 months</button>
+        </div>
+      </fieldset>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
