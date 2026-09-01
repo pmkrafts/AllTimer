@@ -157,6 +157,18 @@
   els.titleInput.value = state.title;
   els.titleInput.addEventListener("input", () => applyTitle(els.titleInput.value.trim()));
 
+  /* Cross-tab sync: adopt changes written by other open tabs */
+  window.addEventListener("storage", (e) => {
+    if (e.key && e.key !== LS_KEY) return; // null key = storage cleared
+    state = loadState();
+    document.documentElement.dataset.theme = state.theme;
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute("content", state.theme === "dark" ? "#181715" : "#faf9f5");
+    els.titleInput.value = state.title;
+    syncUI();
+    tick();
+  });
+
   /* Duration: month pills */
   function setMonths(n) {
     state.mode = "months";
