@@ -15,10 +15,6 @@
     progressFill: $("progressFill"),
     themeToggle: $("themeToggle"),
     fullscreenToggle: $("fullscreenToggle"),
-    pills: Array.from(document.querySelectorAll(".pill")),
-    monthsPills: Array.from(document.querySelectorAll(".pill[data-months]")),
-    customPill: document.querySelector(".pill[data-custom]"),
-    customRange: $("customRange"),
     startDate: $("startDate"),
     endDate: $("endDate"),
   };
@@ -36,9 +32,8 @@
   /* Date-key helpers: "YYYY-MM-DD" in local time */
   const pad2 = (n) => String(n).padStart(2, "0");
   const fmtKey = (d) => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
-  const keyToTime = (key, hour) => new Date(`${key}T${hour}`).getTime();
-  const startOfDay = (key) => keyToTime(key, "00:00:00");
-  const endOfDay = (key) => keyToTime(key, "23:59:59.999");
+  const startOfDay = (key) => new Date(`${key}T00:00:00`).getTime();
+  const endOfDay = (key) => new Date(`${key}T23:59:59.999`).getTime();
   const addDaysKey = (key, n) => {
     const d = new Date(startOfDay(key));
     d.setDate(d.getDate() + n);
@@ -52,10 +47,10 @@
     return d;
   }
 
-  // Months remaining in the current year, clamped to the 1–4 range.
-  function defaultMonths() {
+  // Months remaining in the current year, clamped to 1–4 — default end date.
+  function defaultEndKey() {
     const m = new Date().getMonth() + 1; // 1–12
-    return Math.min(4, Math.max(1, 12 - m));
+    return fmtKey(monthsFromNow(Math.min(4, Math.max(1, 12 - m))));
   }
 
   function loadState() {
@@ -71,33 +66,30 @@
     const state = {
       title: (saved && saved.title) || DEFAULT_TITLE,
       theme,
-      mode: saved && saved.mode === "custom" ? "custom" : "months",
-      months: defaultMonths(),
       startKey: null,
       endKey: null,
       start: 0,
       target: 0,
     };
 
-    const customValid = state.mode === "custom"
-      && saved.startKey && saved.endKey
+    const savedRangeValid = saved && saved.startKey && saved.endKey
       && saved.startKey < saved.endKey
       && endOfDay(saved.endKey) > Date.now();
 
-    if (customValid) {
+    if (savedRangeValid) {
       state.startKey = saved.startKey;
       state.endKey = saved.endKey;
-      state.start = startOfDay(state.startKey);
-      state.target = endOfDay(state.endKey);
     } else if (saved && saved.target && saved.target > Date.now()) {
-      state.mode = "months";
-      state.months = saved.months || state.months;
-      state.start = saved.start || Date.now();
-      state.target = saved.target;
+      // Migrate pre-range saved state (months mode) to an explicit date range.
+      state.startKey = fmtKey(new Date(saved.start || Date.now()));
+      state.endKey = fmtKey(new Date(saved.target));
     } else {
-      state.start = Date.now();
-      state.target = monthsFromNow(state.months).getTime();
+      state.startKey = todayKey();
+      state.endKey = defaultEndKey();
     }
+
+    state.start = startOfDay(state.startKey);
+    state.target = endOfDay(state.endKey);
     return state;
   }
 
@@ -108,8 +100,6 @@
       localStorage.setItem(LS_KEY, JSON.stringify({
         title: state.title,
         theme: state.theme,
-        mode: state.mode,
-        months: state.months,
         startKey: state.startKey,
         endKey: state.endKey,
         start: state.start,
@@ -169,21 +159,8 @@
     tick();
   });
 
-  /* Duration: month pills */
-  function setMonths(n) {
-    state.mode = "months";
-    state.months = n;
-    state.start = Date.now();
-    state.target = monthsFromNow(n).getTime();
-    persist();
-    syncUI();
-    tick();
-  }
-  els.monthsPills.forEach((p) => p.addEventListener("click", () => setMonths(+p.dataset.months)));
-
-  /* Duration: custom range */
-  function applyCustom() {
-    state.mode = "custom";
+  /* Date range */
+  function applyRange() {
     state.start = startOfDay(state.startKey);
     state.target = endOfDay(state.endKey);
     persist();
@@ -191,49 +168,28 @@
     tick();
   }
 
-  function ensureCustomKeys() {
-    if (!state.startKey || !state.endKey) {
-      state.startKey = todayKey();
-      state.endKey = fmtKey(monthsFromNow(defaultMonths()));
-    }
-  }
-
-  els.customPill.addEventListener("click", () => {
-    ensureCustomKeys();
-    applyCustom();
-  });
-
   els.startDate.addEventListener("change", () => {
-    ensureCustomKeys();
     const v = els.startDate.value;
     if (!v) return;
     if (v >= state.endKey) state.endKey = addDaysKey(v, 1); // keep range valid
     state.startKey = v;
-    applyCustom();
+    applyRange();
   });
 
   els.endDate.addEventListener("change", () => {
-    ensureCustomKeys();
     const v = els.endDate.value;
     if (!v) return;
     if (v <= state.startKey) state.startKey = addDaysKey(v, -1); // keep range valid
     state.endKey = v;
-    applyCustom();
+    applyRange();
   });
 
-  /* UI sync: pills, range panel, input bounds */
+  /* UI sync: input values and bounds */
   function syncUI() {
-    const custom = state.mode === "custom";
-    els.monthsPills.forEach((p) =>
-      p.setAttribute("aria-pressed", String(!custom && +p.dataset.months === state.months)));
-    els.customPill.setAttribute("aria-pressed", String(custom));
-    els.customRange.hidden = !custom;
-    if (custom) {
-      els.startDate.value = state.startKey;
-      els.endDate.value = state.endKey;
-      els.startDate.max = state.endKey;
-      els.endDate.min = state.startKey;
-    }
+    els.startDate.value = state.startKey;
+    els.endDate.value = state.endKey;
+    els.startDate.max = state.endKey;
+    els.endDate.min = state.startKey;
   }
 
   /* Countdown */
@@ -263,7 +219,6 @@
   /* Init */
   applyTheme(state.theme);
   applyTitle(state.title);
-  ensureCustomKeys();
   syncUI();
   tick();
   setInterval(tick, 1000);

@@ -4,7 +4,7 @@ A browser countdown for the months remaining in the year — pick a 1–4 month 
 
 ## Features
 
-- Countdown from 1 to 4 months, defaulting to the months left in the current year
+- Countdown to a custom start/end date range, defaulting to the rest of the year
 - Fullscreen mode for a pure countdown view
 - Light and dark themes (follows system preference, remembers your choice)
 - Editable motivational title

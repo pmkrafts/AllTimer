@@ -221,32 +221,11 @@ main {
 }
 #titleInput::placeholder { color: var(--muted-soft); }
 
-.pills { display: flex; flex-wrap: wrap; gap: 12px; }
-
 .custom-range {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 16px;
 }
-.custom-range[hidden] { display: none; }
-
-.pill {
-  padding: 8px 18px;
-  min-height: 40px;
-  background: transparent;
-  border: 1px solid var(--hairline);
-  border-radius: var(--radius-pill);
-  color: var(--muted);
-  font: 500 14px/1.4 var(--font-body);
-  cursor: pointer;
-}
-.pill:active { color: var(--ink); }
-.pill[aria-pressed="true"] {
-  background: var(--surface-strong);
-  color: var(--ink);
-  border-color: var(--primary);
-}
-.pill:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 
 /* Fullscreen: pure countdown, settings hidden */
 html.is-fullscreen .settings { display: none; }

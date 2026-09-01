@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=4">
+  <link rel="stylesheet" href="styles.css?v=5">
 </head>
 <body>
   <header class="topbar">
@@ -69,28 +69,21 @@
         <input id="titleInput" type="text" maxlength="60" placeholder="e.g. Make this year count">
       </div>
       <fieldset class="field">
-        <legend class="label">Countdown length</legend>
-        <div class="pills" id="durationPills">
-          <button class="pill" data-months="1" type="button">1 month</button>
-          <button class="pill" data-months="2" type="button">2 months</button>
-          <button class="pill" data-months="3" type="button">3 months</button>
-          <button class="pill" data-months="4" type="button">4 months</button>
-          <button class="pill" data-custom="true" type="button" aria-controls="customRange">Custom range</button>
+        <legend class="label">Countdown dates</legend>
+        <div class="custom-range">
+          <div class="field">
+            <label class="label" for="startDate">Start date</label>
+            <input id="startDate" type="date">
+          </div>
+          <div class="field">
+            <label class="label" for="endDate">End date</label>
+            <input id="endDate" type="date">
+          </div>
         </div>
       </fieldset>
-      <div class="custom-range" id="customRange" hidden>
-        <div class="field">
-          <label class="label" for="startDate">Start date</label>
-          <input id="startDate" type="date">
-        </div>
-        <div class="field">
-          <label class="label" for="endDate">End date</label>
-          <input id="endDate" type="date">
-        </div>
-      </div>
     </section>
   </main>
 
-  <script src="app.js?v=4"></script>
+  <script src="app.js?v=5"></script>
 </body>
 </html>
