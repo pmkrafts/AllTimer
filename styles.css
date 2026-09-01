@@ -59,12 +59,8 @@ body {
   padding: 0 24px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
 }
-
-.brand { display: flex; align-items: center; gap: 10px; }
-.mark { width: 18px; height: 18px; color: var(--ink); }
-.wordmark { font-weight: 600; font-size: 14px; letter-spacing: 0.02em; color: var(--ink); }
 
 .controls { display: flex; gap: 12px; }
 
