@@ -54,7 +54,6 @@ body {
 /* Top bar */
 .topbar {
   width: 100%;
-  max-width: 1200px;
   height: 64px;
   padding: 0 24px;
   display: flex;
