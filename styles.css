@@ -202,7 +202,9 @@ main {
 
 #titleInput,
 #startDate,
-#endDate {
+#startTime,
+#endDate,
+#endTime {
   width: 100%;
   height: 40px;
   padding: 0 14px;
@@ -214,7 +216,9 @@ main {
 }
 #titleInput:focus,
 #startDate:focus,
-#endDate:focus {
+#startTime:focus,
+#endDate:focus,
+#endTime:focus {
   outline: none;
   border-color: var(--primary);
   box-shadow: 0 0 0 3px rgba(204, 120, 92, 0.15);
@@ -222,8 +226,9 @@ main {
 #titleInput::placeholder { color: var(--muted-soft); }
 
 .custom-range {
+  /* date + time pairs: start row, then end row */
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 128px;
   gap: 16px;
 }
 

@@ -16,29 +16,32 @@
     themeToggle: $("themeToggle"),
     fullscreenToggle: $("fullscreenToggle"),
     startDate: $("startDate"),
+    startTime: $("startTime"),
     endDate: $("endDate"),
+    endTime: $("endTime"),
   };
 
   const DEFAULT_TITLE = "Make this year count";
   const DAY_MS = 86400000;
+  const MIN_GAP_MS = 60000; // smallest selectable range: one minute
+  const DEFAULT_START_TIME = "00:00";
+  const DEFAULT_END_TIME = "23:59";
 
   const fmtDate = new Intl.DateTimeFormat(undefined, {
     weekday: "long",
     month: "long",
     day: "numeric",
     year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
   });
 
-  /* Date-key helpers: "YYYY-MM-DD" in local time */
+  /* Date/time helpers — local time, "YYYY-MM-DD" + "HH:MM" */
   const pad2 = (n) => String(n).padStart(2, "0");
   const fmtKey = (d) => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
-  const startOfDay = (key) => new Date(`${key}T00:00:00`).getTime();
-  const endOfDay = (key) => new Date(`${key}T23:59:59.999`).getTime();
-  const addDaysKey = (key, n) => {
-    const d = new Date(startOfDay(key));
-    d.setDate(d.getDate() + n);
-    return fmtKey(d);
-  };
+  const fmtTime = (d) => `${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+  const dateTimeMs = (key, time) =>
+    new Date(`${key}T${time.length === 5 ? `${time}:00` : time}`).getTime();
   const todayKey = () => fmtKey(new Date());
 
   function monthsFromNow(n) {
@@ -51,6 +54,15 @@
   function defaultEndKey() {
     const m = new Date().getMonth() + 1; // 1–12
     return fmtKey(monthsFromNow(Math.min(4, Math.max(1, 12 - m))));
+  }
+
+  function defaultRange() {
+    return {
+      startKey: todayKey(),
+      startTime: DEFAULT_START_TIME,
+      endKey: defaultEndKey(),
+      endTime: DEFAULT_END_TIME,
+    };
   }
 
   function loadState() {
@@ -66,30 +78,36 @@
     const state = {
       title: (saved && saved.title) || DEFAULT_TITLE,
       theme,
-      startKey: null,
-      endKey: null,
+      ...defaultRange(),
       start: 0,
       target: 0,
     };
 
-    const savedRangeValid = saved && saved.startKey && saved.endKey
-      && saved.startKey < saved.endKey
-      && endOfDay(saved.endKey) > Date.now();
-
-    if (savedRangeValid) {
+    if (saved && saved.startKey && saved.endKey) {
+      // Saved range; times default for state written before time support existed.
       state.startKey = saved.startKey;
+      state.startTime = saved.startTime || DEFAULT_START_TIME;
       state.endKey = saved.endKey;
+      state.endTime = saved.endTime || DEFAULT_END_TIME;
     } else if (saved && saved.target && saved.target > Date.now()) {
-      // Migrate pre-range saved state (months mode) to an explicit date range.
-      state.startKey = fmtKey(new Date(saved.start || Date.now()));
-      state.endKey = fmtKey(new Date(saved.target));
-    } else {
-      state.startKey = todayKey();
-      state.endKey = defaultEndKey();
+      // Migrate pre-range saved state (months mode), preserving the exact instant.
+      const s = new Date(saved.start || Date.now());
+      const t = new Date(saved.target);
+      state.startKey = fmtKey(s);
+      state.startTime = fmtTime(s);
+      state.endKey = fmtKey(t);
+      state.endTime = fmtTime(t);
     }
 
-    state.start = startOfDay(state.startKey);
-    state.target = endOfDay(state.endKey);
+    state.start = dateTimeMs(state.startKey, state.startTime);
+    state.target = dateTimeMs(state.endKey, state.endTime);
+
+    // Elapsed or inverted saved range → start fresh on the default range.
+    if (state.target <= Date.now() || state.start >= state.target) {
+      Object.assign(state, defaultRange());
+      state.start = dateTimeMs(state.startKey, state.startTime);
+      state.target = dateTimeMs(state.endKey, state.endTime);
+    }
     return state;
   }
 
@@ -101,7 +119,9 @@
         title: state.title,
         theme: state.theme,
         startKey: state.startKey,
+        startTime: state.startTime,
         endKey: state.endKey,
+        endTime: state.endTime,
         start: state.start,
         target: state.target,
       }));
@@ -159,35 +179,53 @@
     tick();
   });
 
-  /* Date range */
+  /* Date + time range */
+  function setBoundary(prefix, ms) {
+    const d = new Date(ms);
+    state[`${prefix}Key`] = fmtKey(d);
+    state[`${prefix}Time`] = fmtTime(d);
+  }
+
   function applyRange() {
-    state.start = startOfDay(state.startKey);
-    state.target = endOfDay(state.endKey);
+    state.start = dateTimeMs(state.startKey, state.startTime);
+    state.target = dateTimeMs(state.endKey, state.endTime);
     persist();
     syncUI();
     tick();
   }
 
-  els.startDate.addEventListener("change", () => {
-    const v = els.startDate.value;
-    if (!v) return;
-    if (v >= state.endKey) state.endKey = addDaysKey(v, 1); // keep range valid
-    state.startKey = v;
+  function onStartChange() {
+    const d = els.startDate.value;
+    const t = els.startTime.value;
+    if (!d || !t) return;
+    state.startKey = d;
+    state.startTime = t;
+    // Keep the range valid: nudge the end forward if it no longer follows the start.
+    if (dateTimeMs(d, t) >= state.target) setBoundary("end", dateTimeMs(d, t) + MIN_GAP_MS);
     applyRange();
-  });
+  }
 
-  els.endDate.addEventListener("change", () => {
-    const v = els.endDate.value;
-    if (!v) return;
-    if (v <= state.startKey) state.startKey = addDaysKey(v, -1); // keep range valid
-    state.endKey = v;
+  function onEndChange() {
+    const d = els.endDate.value;
+    const t = els.endTime.value;
+    if (!d || !t) return;
+    state.endKey = d;
+    state.endTime = t;
+    if (dateTimeMs(d, t) <= state.start) setBoundary("start", dateTimeMs(d, t) - MIN_GAP_MS);
     applyRange();
-  });
+  }
+
+  els.startDate.addEventListener("change", onStartChange);
+  els.startTime.addEventListener("change", onStartChange);
+  els.endDate.addEventListener("change", onEndChange);
+  els.endTime.addEventListener("change", onEndChange);
 
   /* UI sync: input values and bounds */
   function syncUI() {
     els.startDate.value = state.startKey;
+    els.startTime.value = state.startTime;
     els.endDate.value = state.endKey;
+    els.endTime.value = state.endTime;
     els.startDate.max = state.endKey;
     els.endDate.min = state.startKey;
   }
