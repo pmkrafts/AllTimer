@@ -19,6 +19,11 @@
     startTime: $("startTime"),
     endDate: $("endDate"),
     endTime: $("endTime"),
+    savedList: $("savedList"),
+    savedCount: $("savedCount"),
+    savedEmpty: $("savedEmpty"),
+    saveTimer: $("saveTimer"),
+    saveHint: $("saveHint"),
   };
 
   const DEFAULT_TITLE = "Make this year count";
@@ -26,6 +31,8 @@
   const MIN_GAP_MS = 60000; // smallest selectable range: one minute
   const DEFAULT_START_TIME = "00:00";
   const DEFAULT_END_TIME = "23:59";
+  const MAX_PRESETS = 5;
+  const fmtShort = new Intl.DateTimeFormat(undefined, { month: "short", day: "numeric" });
 
   const fmtDate = new Intl.DateTimeFormat(undefined, {
     weekday: "long",
@@ -79,6 +86,7 @@
       title: (saved && saved.title) || DEFAULT_TITLE,
       theme,
       ...defaultRange(),
+      presets: saved && Array.isArray(saved.presets) ? saved.presets.slice(0, MAX_PRESETS) : [],
       start: 0,
       target: 0,
     };
@@ -122,6 +130,7 @@
         startTime: state.startTime,
         endKey: state.endKey,
         endTime: state.endTime,
+        presets: state.presets,
         start: state.start,
         target: state.target,
       }));
@@ -176,6 +185,7 @@
     if (meta) meta.setAttribute("content", state.theme === "dark" ? "#181715" : "#faf9f5");
     els.titleInput.value = state.title;
     syncUI();
+    renderSaved();
     tick();
   });
 
@@ -220,6 +230,113 @@
   els.endDate.addEventListener("change", onEndChange);
   els.endTime.addEventListener("change", onEndChange);
 
+  /* Saved timers — up to MAX_PRESETS named ranges */
+  let hintTimer = null;
+
+  function showHint(msg) {
+    els.saveHint.textContent = msg;
+    els.saveHint.hidden = false;
+    clearTimeout(hintTimer);
+    hintTimer = setTimeout(() => {
+      hintTimer = null;
+      els.saveHint.hidden = true;
+      renderSaved();
+    }, 2500);
+  }
+
+  const rangeKey = (p) => [p.startKey, p.startTime, p.endKey, p.endTime].join("|");
+  const currentKey = () => rangeKey(state);
+
+  function saveCurrent() {
+    if (state.presets.length >= MAX_PRESETS) return;
+    if (state.presets.some((p) => rangeKey(p) === currentKey() && p.title === state.title)) {
+      showHint("That timer is already saved.");
+      return;
+    }
+    state.presets.push({
+      id: `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`,
+      title: state.title,
+      startKey: state.startKey,
+      startTime: state.startTime,
+      endKey: state.endKey,
+      endTime: state.endTime,
+    });
+    persist();
+    renderSaved();
+    showHint("Timer saved.");
+  }
+
+  function loadPreset(id) {
+    const p = state.presets.find((x) => x.id === id);
+    if (!p) return;
+    state.title = p.title || DEFAULT_TITLE;
+    els.titleInput.value = state.title;
+    els.title.textContent = state.title;
+    state.startKey = p.startKey;
+    state.startTime = p.startTime;
+    state.endKey = p.endKey;
+    state.endTime = p.endTime;
+    applyRange();
+    renderSaved();
+  }
+
+  function deletePreset(id) {
+    state.presets = state.presets.filter((p) => p.id !== id);
+    persist();
+    renderSaved();
+  }
+
+  function renderSaved() {
+    els.savedList.textContent = "";
+    state.presets.forEach((p) => {
+      const li = document.createElement("li");
+      li.className = "saved-item";
+      const active = rangeKey(p) === currentKey() && p.title === state.title;
+      if (active) li.classList.add("is-active");
+
+      const load = document.createElement("button");
+      load.type = "button";
+      load.className = "saved-load";
+      load.setAttribute("aria-label", `Load saved timer ${p.title}`);
+      if (active) load.setAttribute("aria-current", "true");
+
+      const title = document.createElement("span");
+      title.className = "saved-title";
+      title.textContent = p.title;
+
+      const range = document.createElement("span");
+      range.className = "saved-range";
+      range.textContent = `${fmtShort.format(new Date(dateTimeMs(p.startKey, p.startTime)))} ${p.startTime}`
+        + ` → ${fmtShort.format(new Date(dateTimeMs(p.endKey, p.endTime)))} ${p.endTime}`;
+
+      load.append(title, range);
+      load.addEventListener("click", () => loadPreset(p.id));
+
+      const del = document.createElement("button");
+      del.type = "button";
+      del.className = "saved-delete";
+      del.setAttribute("aria-label", `Delete saved timer ${p.title}`);
+      del.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>';
+      del.addEventListener("click", () => deletePreset(p.id));
+
+      li.append(load, del);
+      els.savedList.append(li);
+    });
+
+    const full = state.presets.length >= MAX_PRESETS;
+    els.savedCount.textContent = `${state.presets.length} / ${MAX_PRESETS}`;
+    els.savedEmpty.hidden = state.presets.length > 0;
+    els.saveTimer.disabled = full;
+    if (full) {
+      els.saveHint.textContent = `All ${MAX_PRESETS} slots are used — delete one to save another.`;
+      els.saveHint.hidden = false;
+    } else if (hintTimer === null) {
+      els.saveHint.hidden = true;
+    }
+  }
+
+  els.saveTimer.addEventListener("click", saveCurrent);
+
   /* UI sync: input values and bounds */
   function syncUI() {
     els.startDate.value = state.startKey;
@@ -258,6 +375,7 @@
   applyTheme(state.theme);
   applyTitle(state.title);
   syncUI();
+  renderSaved();
   tick();
   setInterval(tick, 1000);
 })();

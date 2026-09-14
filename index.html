@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=6">
+  <link rel="stylesheet" href="styles.css?v=7">
 </head>
 <body>
   <header class="topbar">
@@ -89,9 +89,16 @@
           </div>
         </div>
       </fieldset>
+      <fieldset class="field">
+        <legend class="label">Saved timers <span id="savedCount">0 / 5</span></legend>
+        <p id="savedEmpty" class="hint">No saved timers yet.</p>
+        <ul id="savedList" class="saved-list"></ul>
+        <button id="saveTimer" class="btn-save" type="button">Save current timer</button>
+        <p id="saveHint" class="hint" hidden></p>
+      </fieldset>
     </section>
   </main>
 
-  <script src="app.js?v=6"></script>
+  <script src="app.js?v=7"></script>
 </body>
 </html>
