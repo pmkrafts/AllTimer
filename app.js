@@ -14,6 +14,7 @@
     caption: $("caption"),
     progressFill: $("progressFill"),
     themeToggle: $("themeToggle"),
+    settingsToggle: $("settingsToggle"),
     fullscreenToggle: $("fullscreenToggle"),
     startDate: $("startDate"),
     startTime: $("startTime"),
@@ -87,6 +88,7 @@
       theme,
       ...defaultRange(),
       presets: saved && Array.isArray(saved.presets) ? saved.presets.slice(0, MAX_PRESETS) : [],
+      settingsHidden: !!(saved && saved.settingsHidden),
       start: 0,
       target: 0,
     };
@@ -131,6 +133,7 @@
         endKey: state.endKey,
         endTime: state.endTime,
         presets: state.presets,
+        settingsHidden: state.settingsHidden,
         start: state.start,
         target: state.target,
       }));
@@ -149,19 +152,24 @@
     applyTheme(state.theme === "dark" ? "light" : "dark"));
 
   /* Fullscreen */
+  let fsFallback = false; // CSS-only mode when the API is unavailable
+
   function syncFullscreen() {
-    document.documentElement.classList.toggle("is-fullscreen", !!document.fullscreenElement);
+    document.documentElement.classList.toggle(
+      "is-fullscreen",
+      fsFallback || !!document.fullscreenElement,
+    );
   }
-  els.fullscreenToggle.addEventListener("click", async () => {
-    if (document.fullscreenElement) {
-      await document.exitFullscreen().catch(() => {});
+  els.fullscreenToggle.addEventListener("click", () => {
+    if (document.fullscreenElement || fsFallback) {
+      if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+      fsFallback = false;
     } else {
-      try {
-        await document.documentElement.requestFullscreen();
-      } catch (_) {
-        // API unsupported (e.g. sandboxed iframe): CSS-only fallback toggle.
-        document.documentElement.classList.toggle("is-fullscreen");
-      }
+      document.documentElement.requestFullscreen().catch(() => {
+        // API unavailable (e.g. sandboxed iframe): toggle the class instead.
+        fsFallback = true;
+        syncFullscreen();
+      });
     }
     syncFullscreen();
   });
@@ -337,6 +345,14 @@
 
   els.saveTimer.addEventListener("click", saveCurrent);
 
+  /* Settings card visibility */
+  function toggleSettings() {
+    state.settingsHidden = !state.settingsHidden;
+    persist();
+    syncUI();
+  }
+  els.settingsToggle.addEventListener("click", toggleSettings);
+
   /* UI sync: input values and bounds */
   function syncUI() {
     els.startDate.value = state.startKey;
@@ -345,6 +361,9 @@
     els.endTime.value = state.endTime;
     els.startDate.max = state.endKey;
     els.endDate.min = state.startKey;
+    document.documentElement.classList.toggle("settings-hidden", state.settingsHidden);
+    els.settingsToggle.setAttribute("aria-expanded", String(!state.settingsHidden));
+    els.settingsToggle.setAttribute("aria-label", state.settingsHidden ? "Show settings" : "Hide settings");
   }
 
   /* Countdown */

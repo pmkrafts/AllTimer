@@ -8,11 +8,19 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=7">
+  <link rel="stylesheet" href="styles.css?v=8">
 </head>
 <body>
   <header class="topbar">
     <div class="controls">
+      <button id="settingsToggle" class="icon-btn" aria-label="Hide settings" aria-expanded="true" aria-controls="settingsCard" type="button">
+        <svg class="icon-chevron-up" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="m18 15-6-6-6 6"/>
+        </svg>
+        <svg class="icon-chevron-down" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="m6 9 6 6 6-6"/>
+        </svg>
+      </button>
       <button id="themeToggle" class="icon-btn" aria-label="Toggle dark mode" type="button">
         <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <circle cx="12" cy="12" r="5"/>
@@ -63,7 +71,7 @@
       <p id="caption" class="caption"></p>
     </div>
 
-    <section class="settings">
+    <section class="settings" id="settingsCard">
       <div class="field">
         <label class="label" for="titleInput">Motivation title</label>
         <input id="titleInput" type="text" maxlength="60" placeholder="e.g. Make this year count">
@@ -99,6 +107,6 @@
     </section>
   </main>
 
-  <script src="app.js?v=7"></script>
+  <script src="app.js?v=8"></script>
 </body>
 </html>

@@ -87,6 +87,10 @@ html[data-theme="dark"] .icon-sun { display: none; }
 html.is-fullscreen .icon-expand { display: none; }
 html:not(.is-fullscreen) .icon-compress { display: none; }
 
+/* Settings visibility icons: chevron up when open, down when hidden */
+html.settings-hidden .icon-chevron-up { display: none; }
+html:not(.settings-hidden) .icon-chevron-down { display: none; }
+
 /* Main */
 main {
   flex: 1;
@@ -319,6 +323,7 @@ main {
 .btn-save:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 
 /* Fullscreen: pure countdown, settings hidden */
+html.settings-hidden .settings { display: none; }
 html.is-fullscreen .settings { display: none; }
 html.is-fullscreen .digit { font-size: clamp(64px, 13vw, 176px); }
 html.is-fullscreen main { gap: clamp(28px, 6vh, 56px); }
