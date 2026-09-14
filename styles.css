@@ -76,6 +76,10 @@ body {
   padding: 0;
 }
 .icon-btn:active { background: var(--surface-soft); }
+.icon-btn:disabled {
+  color: var(--muted-soft);
+  cursor: not-allowed;
+}
 .icon-btn svg { width: 18px; height: 18px; }
 .icon-btn:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 

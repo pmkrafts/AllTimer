@@ -155,10 +155,10 @@
   let fsFallback = false; // CSS-only mode when the API is unavailable
 
   function syncFullscreen() {
-    document.documentElement.classList.toggle(
-      "is-fullscreen",
-      fsFallback || !!document.fullscreenElement,
-    );
+    const on = fsFallback || !!document.fullscreenElement;
+    document.documentElement.classList.toggle("is-fullscreen", on);
+    // Settings are force-hidden in fullscreen, so the toggle is inoperative there.
+    els.settingsToggle.disabled = on;
   }
   els.fullscreenToggle.addEventListener("click", () => {
     if (document.fullscreenElement || fsFallback) {
@@ -172,6 +172,8 @@
       });
     }
     syncFullscreen();
+    // Transitions settle asynchronously; re-sync in case the change event is delayed.
+    setTimeout(syncFullscreen, 150);
   });
   document.addEventListener("fullscreenchange", syncFullscreen);
 
@@ -394,6 +396,7 @@
   applyTheme(state.theme);
   applyTitle(state.title);
   syncUI();
+  syncFullscreen();
   renderSaved();
   tick();
   setInterval(tick, 1000);
